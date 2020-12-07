@@ -1,2 +1,2 @@
-# H-v-k
+# Hívők
 Hívők csapatának WEB4 Beadandója
