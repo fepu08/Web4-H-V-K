@@ -1,3 +1,6 @@
 {
-  "mongoURI": "mongodb+srv://root:root@h-v-k-webprog4.drz8i.mongodb.net/hivok-web4-beadando?retryWrites=true&w=majority"
+  "mongoURI": "mongodb+srv://root:root@h-v-k-webprog4.drz8i.mongodb.net/hivok-web4-beadando?retryWrites=true&w=majority",
+  "jwtSecret": "topsecrettoken",
+  "githubClientId": "YOUR_GITHUB_CLIENT_ID",
+  "githubSecret": "YOUR_GITHUB_SECRET"
 }
