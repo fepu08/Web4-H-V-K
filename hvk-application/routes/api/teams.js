@@ -227,3 +227,23 @@ router.put('/members/remove/:team_id/:user_id', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+router.get('/members/:team_id/user_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const user = await User.findById(req.params.user_id).select('-password');
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+        if(!user) return res.status(404).json({ msg: 'User not found'});
+
+        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
+
+        res.status(200).json({member: user});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
