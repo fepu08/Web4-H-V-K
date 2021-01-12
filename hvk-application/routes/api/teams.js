@@ -275,3 +275,67 @@ router.get('/members/:team_id/', auth, async (req, res) => {
     }
 })
 
+router.put('/admins/add/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(!isLoggedInUserAdmin(req, team)) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isUserTeamMember(team, user)){
+            return res.status(400).json({msg: "User must be a team member first!"});
+        }
+        if(isUserAdmin(team, user)){
+            return res.status(400).json({msg: "User is already admin."});
+        }
+
+        team.admins.push({user: user.id});
+        await team.save();
+        return res.status(200).send(team.admins);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+
+router.put('/admins/remove/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(isUserOwner(team, user) && !isLoggedInUserOwner(req, team)){
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isLoggedInUserAdmin(req, team)) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isUserAdmin(team, user)){
+            return res.status(400).json({msg: "User is not admin"});
+        }
+
+        
+        let removeIndex = team.admins.map(admin => admin.id).indexOf(user.id);
+        team.admins.splice(removeIndex, 1);
+        await team.save();
+        return res.status(200).json(team.admins);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
