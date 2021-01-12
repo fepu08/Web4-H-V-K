@@ -67,3 +67,25 @@ router.post('/',
         }
     }
 );
+
+router.delete('/:team_id', auth, async (req, res) => {
+        try {
+            const team = await Team.findById(req.params.team_id);
+            if(!team){
+                return res.status(400).json({ error: { msg: 'Team does not exist with this ID' } });
+            }
+
+            if (!isOwner(req, team)) {
+                return res.status(400).json({error: {msg: 'Only one of the team owners can delete the team'}});
+            }
+            
+            const posts = await Post.deleteMany({team: req.params.team_id});
+
+            await team.remove();
+            res.json({msg: 'Team removed'});
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server Error');
+        }
+    }
+);
