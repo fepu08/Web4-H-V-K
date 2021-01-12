@@ -118,3 +118,25 @@ router.put('/posts/add/:team_id/:post_id', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+router.put('/posts/remove/:team_id/:post_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const post = await Post.findById(req.params.post_id);
+
+        const checkResult = canUserDeleteThisPost(req, team, post);
+        if(checkResult) {
+            return res.status(400).send(checkResult);
+        }
+
+        const removeIndex = team.posts.map(post => post.post.toString()).indexOf(post.id);
+        team.posts.splice(removeIndex, 1);
+        await Post.findByIdAndDelete(req.params.post_id);
+        await team.save();
+        res.json(team.posts);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
