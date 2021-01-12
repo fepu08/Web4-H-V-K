@@ -140,3 +140,41 @@ router.put('/posts/remove/:team_id/:post_id', auth, async (req, res) => {
     }
 });
 
+router.put('/member/add/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+        const profile = await Profile.findOne({user: req.params.user_id});
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+        if(!profile) {
+            return res.status(404).json({msg: "This user has no profile"});
+        }
+
+
+        if(!isLoggedInUserAdmin(req, team)) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+
+        if(isUserTeamMember(team, user)){
+            return res.status(400).json({msg: "User is already member"});
+        }
+
+        team.members.push({user: user.id});
+        await team.save();
+
+        // add team to user's profile
+        profile.teams.unshift({team_id: team.id, name: team.name});
+        await profile.save();
+
+        return res.status(200).send(team.members);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
