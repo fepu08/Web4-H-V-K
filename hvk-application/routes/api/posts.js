@@ -1,11 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const { check, validationResult } = require('express-validator');
+const auth = require('../../middleware/auth');
 
-// @route   GET api/posts
-// @desc    Test route
-// @access  Public
-router.get('/', (req, res) => {
-    res.send('User route');
-});
+const Post = require('../../models/Post');
+const User = require('../../models/User');
+const Team = require('../../models/Team');
 
-module.exports = router;
+
+// @route   POST api/posts
+// @desc    Create a post
+// @access  Private
