@@ -495,3 +495,57 @@ router.get('/owners/:team_id/', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 })
+
+function canUserAddThisPost(req, team, post){
+    if (!isLoggedInUserTeamMember(req,team)) return "This user is not a member of this team.";
+    if (postIsAlreadyAdded(req, team)) return "Post is already added to this team";
+    if(!(isLoggedInUserAdmin(req, team)) && !(postFromLoggedInUser(req, post))){
+        return "To add this post, you should be admin and/or the author of the post";
+    }
+}
+
+function canUserDeleteThisPost(req, team, post) {
+    if (!isLoggedInUserTeamMember(req,team)) return "This user is not a member of this team.";
+    if (!postIsAlreadyAdded(req, team)) return "Post not found with this ID";
+    if(!(isLoggedInUserAdmin(req, team)) && !(postFromLoggedInUser(req, post))){
+        return "To remove this post, you should be admin and/or the author of the post";
+    }
+}
+
+function postIsAlreadyAdded(req, team) {
+    return team.posts.filter(post => post.post.toString() === req.params.post_id).length > 0;
+}
+
+function isLoggedInUserAdmin(req, team){
+    return team.admins.filter(admin => admin.user.toString() === req.user.id).length > 0;
+}
+
+function isUserAdmin(team, user){
+    return team.admins.filter(admin => admin.user.toString() === user.id).length > 0;
+}
+
+function isUserOwner(team, user) {
+    return team.owners.filter(owner => owner.user.toString() === user.id).length > 0;
+}
+
+function postFromLoggedInUser(req, post){
+    return post.user.id === req.user.id;
+}
+
+function isLoggedInUserTeamMember(req, team){
+    return team.members.filter(member => member.user.toString() === req.user.id).length > 0;
+}
+
+function isLoggedInUserOwner(req, team) {
+    return team.owners.filter(owner => owner.user.toString() === req.user.id).length > 0;
+}
+
+function isUserTeamMember(team, user) {
+    return team.members.filter(member => member.user.toString() === user.id).length > 0;
+}
+
+function isOwner(req, team){
+    return team.owners.filter(owner => owner.user.toString() === req.user.id).length > 0;
+}
+
+module.exports = router;
