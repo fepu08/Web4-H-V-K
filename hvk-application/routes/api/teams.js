@@ -387,3 +387,111 @@ router.get('/admins/:team_id/', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 })
+
+router.put('/owners/add/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(!isLoggedInUserOwner(req, team)) {
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isUserTeamMember(team, user)){
+            return res.status(400).json({msg: "User must be a team member first!"});
+        }
+        if(isUserOwner(team, user)){
+            return res.status(400).json({msg: "User is already owner."});
+        }
+
+        team.owners.push({user: user.id});
+        await team.save();
+        return res.status(200).send(team.owners);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.put('/owners/remove/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.user_id).select('-password');
+        const team = await Team.findById(req.params.team_id);
+
+        if(!user) {
+            return res.status(404).json({msg: "User does not exist with this ID"});
+        }
+        if(!team) {
+            return res.status(404).json({msg: "Team does not exist with this ID"});
+        }
+
+        if(isUserOwner(team, user) && !isLoggedInUserOwner(req, team)){
+            return res.status(403).json({msg: "Access denied"});
+        }
+        if(!isUserOwner(team, user)){
+            return res.status(400).json({msg: "User is not owner"});
+        }
+
+        let removeIndex = team.owners.map(owner => owner.id).indexOf(user.id);
+        team.owners.splice(removeIndex, 1);
+        await team.save();
+        return res.status(200).json(team.owners);
+    } catch(err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.get('/owners/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const user = await User.findById(req.params.user_id).select('-password');
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+        if(!user) return res.status(404).json({ msg: 'User not found'});
+
+        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
+        if(!isUserOwner(team, user)) return res.status(404).json({msg: 'User is not owner'});
+
+        res.status(200).json({owner: user});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
+
+router.get('/owners/:team_id/', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+
+        const owners = [];
+        for(let i = 0; i < team.owners.length; i++){
+            const user = await User.findById(team.owners[i].user).select('-password');
+            
+            if(user) {
+                const profile = await Profile.findOne({user: user.id.toString()});
+                if(!profile) return res.status(404).json({ msg: 'Profile not found'});
+                owners.push(profile);
+            }
+        }
+
+        res.status(200).json({owners: owners});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
