@@ -339,3 +339,51 @@ router.put('/admins/remove/:team_id/:user_id', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+router.get('/admins/:team_id/:user_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const user = await User.findById(req.params.user_id).select('-password');
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+        if(!user) return res.status(404).json({ msg: 'User not found'});
+
+        if(!isUserTeamMember(team, user)) return res.status(404).json({msg: 'User is not team member'});
+        if(!isUserAdmin(team, user)) return res.status(404).json({msg: 'User is not admin'});
+
+        res.status(200).json({admin: user});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
+
+router.get('/admins/:team_id/', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+
+        if(!team) return res.status(404).json({ msg: 'Team not found'});
+
+        const admins = [];
+        for(let i = 0; i < team.admins.length; i++){
+            const user = await User.findById(team.admins[i].user).select('-password');
+            
+            if(user) {
+                const profile = await Profile.findOne({user: user.id.toString()});
+                if(!profile) return res.status(404).json({ msg: 'Profile not found'});
+                admins.push(profile);
+            }
+        }
+
+        res.status(200).json({admins: admins});
+    } catch (err) {
+        console.error(err.message);
+        if(err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Profile not found'});
+        }
+        res.status(500).send('Server Error');
+    }
+})
