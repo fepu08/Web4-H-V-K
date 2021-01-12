@@ -89,3 +89,32 @@ router.delete('/:team_id', auth, async (req, res) => {
         }
     }
 );
+
+router.put('/posts/add/:team_id/:post_id', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.team_id);
+        const post = await Post.findById(req.params.post_id);
+
+        if(!team) {
+            return res.status(404).json({msg: "Team not found"});
+        }
+        if(!post) {
+            return res.status(404).json({msg: "Post not found"});
+        }
+
+        const checkResult = canUserAddThisPost(req, team, post)
+        if(checkResult) {
+            return res.status(400).send(checkResult);
+        }
+
+        team.posts.unshift({post: req.params.post_id});
+        post.team = req.params.team_id;
+        await post.save();
+        await team.save();
+
+        res.json(team.posts);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
