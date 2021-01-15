@@ -13,8 +13,8 @@ const Navbar = () => {
                     </div>
 
                     <div className={"navbar-nav ml-auto action-buttons"}>
-                        <Link className={"nav-link mr-4"} to={"/login"}>Login</Link>
-                        <Link className={"nav-link mr-4"} to={"/register"}>Register</Link>
+                            <Link className={"nav-link mr-4"} to={"/login"}>Login</Link>
+                            <Link className={"nav-link mr-4"} to={"/register"}>Register</Link>
                     </div>
                 </div>
             </div>
