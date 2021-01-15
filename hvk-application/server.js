@@ -5,6 +5,8 @@ const app = express();
 
 connectDB();
 
+app.use(express.json({extended: false})); // allow us to get data w request.body
+
 // Define Routes
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/users', require('./routes/api/users'));
