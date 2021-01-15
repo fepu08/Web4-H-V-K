@@ -43,7 +43,7 @@ const Register = ({setAlert, register}) => {
                                 name={"first_name"}
                                 value={first_name}
                                 onChange={e => onChange(e)}
-                                 />
+                            />
                         </Form.Group>
                         <Form.Group>
                             <input
@@ -53,7 +53,7 @@ const Register = ({setAlert, register}) => {
                                 name={"last_name"}
                                 value={last_name}
                                 onChange={e => onChange(e)}
-                                 />
+                            />
                         </Form.Group>
                         <Form.Group>
                             <input
@@ -63,7 +63,7 @@ const Register = ({setAlert, register}) => {
                                 name={"email"}
                                 value={email}
                                 onChange={e => onChange(e)}
-                                
+
                             />
                             <small className={"form-text"}>
                                 This site uses Gravatar so if you want a profile image, use a Gravatar email
@@ -77,7 +77,7 @@ const Register = ({setAlert, register}) => {
                                 name={"password"}
                                 value={password}
                                 onChange={e => onChange(e)}
-                                
+
                             />
                         </Form.Group>
                         <Form.Group>
@@ -88,14 +88,14 @@ const Register = ({setAlert, register}) => {
                                 name={"password2"}
                                 value={password2}
                                 onChange={e => onChange(e)}
-                                
+
                             />
                         </Form.Group>
                         <Form.Group>
                             <input
-                                   type={"submit"}
-                                   className={"btn btn-primary btn-block"}
-                                   value={"Register"}
+                                type={"submit"}
+                                className={"btn btn-primary btn-block"}
+                                value={"Register"}
                             />
                         </Form.Group>
                     </Form>
@@ -116,4 +116,4 @@ Register.propTypes = {
 export default connect(
     null,
     {setAlert, register}
-    )(Register);
+)(Register);
